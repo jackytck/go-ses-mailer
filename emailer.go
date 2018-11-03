@@ -3,7 +3,6 @@
 package mailer
 
 import (
-	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -86,7 +85,7 @@ func (e *Emailer) DeleteTemplate(temaplateName string) (*ses.DeleteTemplateOutpu
 }
 
 // Send sends bulk emails in batch.
-func (e *Emailer) Send(template Template, destinations []ses.BulkEmailDestination) ([]*ses.SendBulkTemplatedEmailOutput, error) {
+func (e *Emailer) Send(template Template, destinations []Destination) ([]*ses.SendBulkTemplatedEmailOutput, error) {
 	total := len(destinations)
 	var allRes []*ses.SendBulkTemplatedEmailOutput
 	for i := 0; i < total; i += MaxReceivers {
@@ -108,13 +107,14 @@ func (e *Emailer) Send(template Template, destinations []ses.BulkEmailDestinatio
 }
 
 // SendSingle sends a single bulk email to every address in destinations.
-func (e *Emailer) SendSingle(template Template, destinations []ses.BulkEmailDestination) (*ses.SendBulkTemplatedEmailOutput, error) {
+// Each bulk email could contain at most 50 emails.
+func (e *Emailer) SendSingle(template Template, destinations []Destination) (*ses.SendBulkTemplatedEmailOutput, error) {
 	fmt.Println("Sending bulk email...")
 	input := &ses.SendBulkTemplatedEmailInput{
 		Source:               aws.String(e.From),
 		ConfigurationSetName: aws.String("log"),
 		Template:             aws.String(template.Name),
-		Destinations:         destinations,
+		Destinations:         MapToSESType(destinations),
 		DefaultTemplateData:  aws.String(template.DefaultDataJSON()),
 	}
 
@@ -124,16 +124,4 @@ func (e *Emailer) SendSingle(template Template, destinations []ses.BulkEmailDest
 		return nil, err
 	}
 	return res, nil
-}
-
-// BuildDest helps to build a destination target.
-func BuildDest(to string, templateData interface{}) ses.BulkEmailDestination {
-	j, _ := json.Marshal(templateData)
-	d := ses.BulkEmailDestination{
-		Destination: &ses.Destination{
-			ToAddresses: []string{to},
-		},
-		ReplacementTemplateData: aws.String(string(j)),
-	}
-	return d
 }
