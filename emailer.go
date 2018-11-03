@@ -3,6 +3,7 @@
 package mailer
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -114,7 +115,7 @@ func (e *Emailer) SendSingle(template Template, destinations []ses.BulkEmailDest
 		ConfigurationSetName: aws.String("log"),
 		Template:             aws.String(template.Name),
 		Destinations:         destinations,
-		DefaultTemplateData:  aws.String(template.DefaultData),
+		DefaultTemplateData:  aws.String(template.DefaultDataJSON()),
 	}
 
 	req := e.Client.SendBulkTemplatedEmailRequest(input)
@@ -126,12 +127,13 @@ func (e *Emailer) SendSingle(template Template, destinations []ses.BulkEmailDest
 }
 
 // BuildDest helps to build a destination target.
-func BuildDest(to, templateData string) ses.BulkEmailDestination {
+func BuildDest(to string, templateData interface{}) ses.BulkEmailDestination {
+	j, _ := json.Marshal(templateData)
 	d := ses.BulkEmailDestination{
 		Destination: &ses.Destination{
 			ToAddresses: []string{to},
 		},
-		ReplacementTemplateData: aws.String(templateData),
+		ReplacementTemplateData: aws.String(string(j)),
 	}
 	return d
 }
