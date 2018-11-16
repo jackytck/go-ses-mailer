@@ -3,7 +3,6 @@
 package mailer
 
 import (
-	"fmt"
 	"strings"
 	"time"
 
@@ -41,7 +40,6 @@ func New(from string) (*Emailer, error) {
 // CreateTemplate creates an email template. Existing template of the same name
 // will be over-written.
 func (e *Emailer) CreateTemplate(template Template) (*ses.CreateTemplateOutput, error) {
-	fmt.Println("Creating template...")
 	t := ses.Template{
 		TemplateName: aws.String(template.Name),
 		SubjectPart:  aws.String(template.Subject),
@@ -57,7 +55,6 @@ func (e *Emailer) CreateTemplate(template Template) (*ses.CreateTemplateOutput, 
 			if err != nil {
 				return nil, err
 			}
-			fmt.Println("Resend create template request...")
 			req2 := e.Client.CreateTemplateRequest(&input)
 			res, err = req2.Send()
 			if err != nil {
@@ -72,7 +69,6 @@ func (e *Emailer) CreateTemplate(template Template) (*ses.CreateTemplateOutput, 
 
 // DeleteTemplate deletes the template of the given name.
 func (e *Emailer) DeleteTemplate(temaplateName string) (*ses.DeleteTemplateOutput, error) {
-	fmt.Println("Deleting template...")
 	t := ses.DeleteTemplateInput{
 		TemplateName: aws.String(temaplateName),
 	}
@@ -109,7 +105,6 @@ func (e *Emailer) Send(template Template, confSet string, destinations []Destina
 // SendSingle sends a single bulk email to every address in destinations.
 // Each bulk email could contain at most 50 emails.
 func (e *Emailer) SendSingle(template Template, confSet string, destinations []Destination) (*ses.SendBulkTemplatedEmailOutput, error) {
-	fmt.Println("Sending bulk email...")
 	input := &ses.SendBulkTemplatedEmailInput{
 		Source:               aws.String(e.From),
 		ConfigurationSetName: aws.String(confSet),
