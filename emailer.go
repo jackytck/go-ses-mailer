@@ -3,6 +3,7 @@
 package mailer
 
 import (
+	"context"
 	"strings"
 	"time"
 
@@ -48,7 +49,7 @@ func (e *Emailer) CreateTemplate(template Template) (*ses.CreateTemplateOutput, 
 	}
 	input := ses.CreateTemplateInput{Template: &t}
 	req := e.Client.CreateTemplateRequest(&input)
-	res, err := req.Send()
+	res, err := req.Send(context.Background())
 	if err != nil {
 		if strings.HasPrefix(err.Error(), ses.ErrCodeAlreadyExistsException) {
 			_, err = e.DeleteTemplate(template.Name)
@@ -56,7 +57,7 @@ func (e *Emailer) CreateTemplate(template Template) (*ses.CreateTemplateOutput, 
 				return nil, err
 			}
 			req2 := e.Client.CreateTemplateRequest(&input)
-			res, err = req2.Send()
+			res, err = req2.Send(context.Background())
 			if err != nil {
 				return nil, err
 			}
@@ -73,7 +74,7 @@ func (e *Emailer) DeleteTemplate(temaplateName string) (*ses.DeleteTemplateOutpu
 		TemplateName: aws.String(temaplateName),
 	}
 	req := e.Client.DeleteTemplateRequest(&t)
-	res, err := req.Send()
+	res, err := req.Send(context.Background())
 	if err != nil {
 		return nil, err
 	}
@@ -114,7 +115,7 @@ func (e *Emailer) SendSingle(template Template, confSet string, destinations []D
 	}
 
 	req := e.Client.SendBulkTemplatedEmailRequest(input)
-	res, err := req.Send()
+	res, err := req.Send(context.Background())
 	if err != nil {
 		return nil, err
 	}
