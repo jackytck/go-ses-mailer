@@ -19,7 +19,7 @@ const MaxReceivers int = 50
 // Emailer represents the ses client for creating template and sending bulk email.
 type Emailer struct {
 	From   string
-	Client *ses.SES
+	Client *ses.Client
 }
 
 // New creates new Emailer instance.
@@ -40,7 +40,7 @@ func New(from string) (*Emailer, error) {
 
 // CreateTemplate creates an email template. Existing template of the same name
 // will be over-written.
-func (e *Emailer) CreateTemplate(template Template) (*ses.CreateTemplateOutput, error) {
+func (e *Emailer) CreateTemplate(template Template) (*ses.CreateTemplateResponse, error) {
 	t := ses.Template{
 		TemplateName: aws.String(template.Name),
 		SubjectPart:  aws.String(template.Subject),
@@ -69,7 +69,7 @@ func (e *Emailer) CreateTemplate(template Template) (*ses.CreateTemplateOutput, 
 }
 
 // DeleteTemplate deletes the template of the given name.
-func (e *Emailer) DeleteTemplate(temaplateName string) (*ses.DeleteTemplateOutput, error) {
+func (e *Emailer) DeleteTemplate(temaplateName string) (*ses.DeleteTemplateResponse, error) {
 	t := ses.DeleteTemplateInput{
 		TemplateName: aws.String(temaplateName),
 	}
@@ -82,9 +82,9 @@ func (e *Emailer) DeleteTemplate(temaplateName string) (*ses.DeleteTemplateOutpu
 }
 
 // Send sends bulk emails in batch.
-func (e *Emailer) Send(template Template, confSet string, destinations []Destination) ([]*ses.SendBulkTemplatedEmailOutput, error) {
+func (e *Emailer) Send(template Template, confSet string, destinations []Destination) ([]*ses.SendBulkTemplatedEmailResponse, error) {
 	total := len(destinations)
-	var allRes []*ses.SendBulkTemplatedEmailOutput
+	var allRes []*ses.SendBulkTemplatedEmailResponse
 	for i := 0; i < total; i += MaxReceivers {
 		end := i + MaxReceivers
 		if end > total {
@@ -105,7 +105,7 @@ func (e *Emailer) Send(template Template, confSet string, destinations []Destina
 
 // SendSingle sends a single bulk email to every address in destinations.
 // Each bulk email could contain at most 50 emails.
-func (e *Emailer) SendSingle(template Template, confSet string, destinations []Destination) (*ses.SendBulkTemplatedEmailOutput, error) {
+func (e *Emailer) SendSingle(template Template, confSet string, destinations []Destination) (*ses.SendBulkTemplatedEmailResponse, error) {
 	input := &ses.SendBulkTemplatedEmailInput{
 		Source:               aws.String(e.From),
 		ConfigurationSetName: aws.String(confSet),
